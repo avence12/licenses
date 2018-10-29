@@ -195,7 +195,7 @@ func TestCleanLicenseData(t *testing.T) {
 	data := `The MIT License (MIT)
 
 	Copyright (c) 2013 Ben Johnson
-	
+
 	Some other lines.
 	And more.
 	`

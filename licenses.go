@@ -15,7 +15,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/pmezard/licenses/assets"
+	"github.com/avence12/licenses/assets"
 )
 
 type Template struct {
@@ -534,21 +534,22 @@ func groupLicenses(licenses []License) ([]License, error) {
 }
 
 func printLicenses() error {
+	msg := `Usage: licenses IMPORTPATH...
+
+	licenses lists all dependencies of specified packages or commands, excluding
+	standard library packages, and prints their licenses. Licenses are detected by
+	looking for files named like LICENSE, COPYING, COPYRIGHT and other variants in
+	the package directory, and its parent directories until one is found. Files
+	content is matched against a set of well-known licenses and the best match is
+	displayed along with its score.
+
+	With -a, all individual packages are displayed instead of grouping them by
+	license files.
+	With -w, words in package license file not found in the template license are
+	displayed. It helps assessing the changes importance.
+	`
 	flag.Usage = func() {
-		fmt.Println(`Usage: licenses IMPORTPATH...
-
-licenses lists all dependencies of specified packages or commands, excluding
-standard library packages, and prints their licenses. Licenses are detected by
-looking for files named like LICENSE, COPYING, COPYRIGHT and other variants in
-the package directory, and its parent directories until one is found. Files
-content is matched against a set of well-known licenses and the best match is
-displayed along with its score.
-
-With -a, all individual packages are displayed instead of grouping them by
-license files.
-With -w, words in package license file not found in the template license are
-displayed. It helps assessing the changes importance.
-`)
+		fmt.Println(msg)
 		os.Exit(1)
 	}
 	all := flag.Bool("a", false, "display all individual packages")
