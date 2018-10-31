@@ -2,17 +2,25 @@
 
 `licenses` uses `go list` tool over a Go workspace to collect the dependencies
 of a package or command, detect their license if any and match them against
-well-known templates.
+well-known templates. Require **Golang 1.11** or above to build this project.
 
 Inspired by [https://github.com/pmezard/licenses](https://github.com/pmezard/licenses).
 
 ## New Features
 
 - Support Go Modules
-- Update list of license
+- Update license lists
     - Add [Server Side Public License (SSPL)](https://www.mongodb.com/licensing/server-side-public-license)
 
 ## Quick Start
+
+- Install licenses
+
+```
+$ go get -u github.com/avence12/licenses
+```
+
+- Show all licenses of github.com/drone/drone-cli/drone and its dependencies
 
 ```
 $ licenses github.com/drone/drone-cli/drone
@@ -37,10 +45,11 @@ github.com/drone/drone-cli/vendor/golang.org/x/sync/errgroup                BSD 
 github.com/drone/drone-cli/vendor/gopkg.in/yaml.v2                          ? (The Unlicense, 35%)
 ```
 
-Unmatched license words can be displayed with:
+- Unmatched license words can be displayed with:
 
 ```
-$ licenses -w github.com/steveyen/gtreap
-github.com/steveyen/gtreap  MIT License (98%)
-                            -words: mit, license
+$ licenses -w github.com/docker/go-units
+github.com/docker/go-units  Apache License 2.0 (96%)
+                            +words: https
+                            -words: http, how, apply, attach, boilerplate, fields, enclosed, brackets, replaced, identifying, information, don't, should, appropriate, comment, syntax, format, we, also, recommend, class, description, same, printed, page, easier, identification, archives, yyyy
 ```

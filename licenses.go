@@ -18,6 +18,19 @@ import (
 	"github.com/avence12/licenses/assets"
 )
 
+var (
+	stdPkgs     = []string{"std", "cmd"}
+	reWords     = regexp.MustCompile(`[\w']+`)
+	reCopyright = regexp.MustCompile(
+		`(?i)\s*Copyright (?:©|\(c\)|\xC2\xA9)?\s*(?:\d{4}|\[year\]).*`)
+	reLicense = regexp.MustCompile(`(?i)^(?:` +
+		`((?:un)?licen[sc]e)|` +
+		`((?:un)?licen[sc]e\.(?:md|markdown|txt))|` +
+		`(copy(?:ing|right)(?:\.[^.]+)?)|` +
+		`(licen[sc]e\.[^.]+)` +
+		`)$`)
+)
+
 type Template struct {
 	Title    string
 	Nickname string
@@ -57,20 +70,14 @@ func parseTemplate(content string) (*Template, error) {
 func loadTemplates() ([]*Template, error) {
 	templates := []*Template{}
 	for _, a := range assets.Assets {
-		templ, err := parseTemplate(a.Content)
+		tmpl, err := parseTemplate(a.Content)
 		if err != nil {
 			return nil, err
 		}
-		templates = append(templates, templ)
+		templates = append(templates, tmpl)
 	}
 	return templates, nil
 }
-
-var (
-	reWords     = regexp.MustCompile(`[\w']+`)
-	reCopyright = regexp.MustCompile(
-		`(?i)\s*Copyright (?:©|\(c\)|\xC2\xA9)?\s*(?:\d{4}|\[year\]).*`)
-)
 
 func cleanLicenseData(data []byte) []byte {
 	data = bytes.ToLower(data)
@@ -210,6 +217,11 @@ func expandPackages(gopath string, pkgs []string) ([]string, error) {
 	args = append(args, pkgs...)
 	cmd := exec.Command("go", args...)
 	cmd.Env = fixEnv(gopath)
+	// TODO on Golang 1.11, "go list std cmd" under a Go Module project throws error
+	// disable module to force using GOPATH for standard libraries
+	if inSlice(stdPkgs, pkgs) {
+		cmd.Env = append(cmd.Env, "GO111MODULE=off")
+	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		output := string(out)
@@ -235,7 +247,7 @@ func listPackagesAndDeps(gopath string, pkgs []string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	args := []string{"list", "-f", "{{range .Deps}}{{.}}|{{end}}"}
+	args := []string{"list", "-test", "-f", "{{range .Deps}}{{.}}|{{end}}"}
 	args = append(args, pkgs...)
 	cmd := exec.Command("go", args...)
 	cmd.Env = fixEnv(gopath)
@@ -269,7 +281,19 @@ func listPackagesAndDeps(gopath string, pkgs []string) ([]string, error) {
 }
 
 func listStandardPackages(gopath string) ([]string, error) {
-	return expandPackages(gopath, []string{"std", "cmd"})
+	return expandPackages(gopath, stdPkgs)
+}
+
+// return true if any item in bases exists in targets
+func inSlice(bases, targets []string) bool {
+	for _, base := range bases {
+		for _, target := range targets {
+			if base == target {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 type PkgError struct {
@@ -282,6 +306,16 @@ type PkgInfo struct {
 	Root       string
 	ImportPath string
 	Error      *PkgError
+	Module     *ModInfo
+}
+
+type ModInfo struct {
+	Path     string
+	Version  string
+	Time     string
+	Indirect bool
+	Dir      string
+	GoMod    string
 }
 
 func getPackagesInfo(gopath string, pkgs []string) ([]*PkgInfo, error) {
@@ -316,15 +350,6 @@ func getPackagesInfo(gopath string, pkgs []string) ([]*PkgInfo, error) {
 	return infos, err
 }
 
-var (
-	reLicense = regexp.MustCompile(`(?i)^(?:` +
-		`((?:un)?licen[sc]e)|` +
-		`((?:un)?licen[sc]e\.(?:md|markdown|txt))|` +
-		`(copy(?:ing|right)(?:\.[^.]+)?)|` +
-		`(licen[sc]e\.[^.]+)` +
-		`)$`)
-)
-
 // scoreLicenseName returns a factor between 0 and 1 weighting how likely
 // supplied filename is a license file.
 func scoreLicenseName(name string) float64 {
@@ -351,7 +376,11 @@ func scoreLicenseName(name string) float64 {
 func findLicense(info *PkgInfo) (string, error) {
 	path := info.ImportPath
 	for ; path != "."; path = filepath.Dir(path) {
-		fis, err := ioutil.ReadDir(filepath.Join(info.Root, "src", path))
+		fpath := filepath.Join(info.Root, "src", path)
+		if isModule(info) {
+			fpath = info.Dir
+		}
+		fis, err := ioutil.ReadDir(fpath)
 		if err != nil {
 			return "", err
 		}
@@ -368,7 +397,7 @@ func findLicense(info *PkgInfo) (string, error) {
 			}
 		}
 		if bestName != "" {
-			return filepath.Join(path, bestName), nil
+			return filepath.Join(fpath, bestName), nil
 		}
 	}
 	return "", nil
@@ -411,7 +440,7 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 	}
 
 	// Cache matched licenses by path. Useful for package with a lot of
-	// subpackages like bleve.
+	// subpackages like kubernetes.
 	matched := map[string]MatchResult{}
 
 	licenses := []License{}
@@ -436,6 +465,9 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 		}
 		if path != "" {
 			fpath := filepath.Join(info.Root, "src", path)
+			if isModule(info) {
+				fpath = path
+			}
 			m, ok := matched[fpath]
 			if !ok {
 				data, err := ioutil.ReadFile(fpath)
@@ -453,6 +485,14 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 		licenses = append(licenses, license)
 	}
 	return licenses, nil
+}
+
+// check if the package uses Go Module (the source is under $GOPATH/pkg/mod)
+func isModule(info *PkgInfo) bool {
+	if info.Module != nil {
+		return true
+	}
+	return false
 }
 
 // longestCommonPrefix returns the longest common prefix over import path

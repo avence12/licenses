@@ -1,9 +1,9 @@
 package main
 
 import (
-	"colors/red"
-	red2 "couleurs/red"
 	"fmt"
+	"github.com/avence12/licenses/testdata/src/colors/red"
+	red2 "github.com/avence12/licenses/testdata/src/couleurs/red"
 )
 
 func main() {

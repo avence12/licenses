@@ -1,8 +1,8 @@
 package main
 
 import (
-	"colors/red"
 	"fmt"
+	"github.com/avence12/licenses/testdata/src/colors/red"
 )
 
 func main() {

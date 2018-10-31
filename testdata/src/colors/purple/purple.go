@@ -1,8 +1,8 @@
 package purple
 
 import (
-	"colors/broken"
-	"colors/red"
+	"github.com/avence12/licenses/testdata/src/colors/broken"
+	"github.com/avence12/licenses/testdata/src/colors/red"
 )
 
 func purple() string {

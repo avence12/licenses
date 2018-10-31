@@ -1,9 +1,9 @@
 package broken
 
 import (
-	"colors/red"
-	"colors/missing"
+	"github.com/avence12/licenses/testdata/src/colors/red"
+	"github.com/avence12/licenses/testdata/src/colors/missing"
 )
 
 // Does not compile at all
-iDontEven = 
+iDontEven =
