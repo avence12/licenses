@@ -12,13 +12,13 @@ Inspired by [https://github.com/pmezard/licenses](https://github.com/pmezard/lic
 - Update license lists
     - Add [Server Side Public License (SSPL)](https://www.mongodb.com/licensing/server-side-public-license)
 
-## Quick Start
-
-- Install licenses
+## Installation
 
 ```
 $ go get -u github.com/avence12/licenses
 ```
+
+## Quick Start
 
 - Show all licenses of github.com/drone/drone-cli/drone and its dependencies
 
@@ -51,5 +51,5 @@ github.com/drone/drone-cli/vendor/gopkg.in/yaml.v2                          ? (T
 $ licenses -w github.com/docker/go-units
 github.com/docker/go-units  Apache License 2.0 (96%)
                             +words: https
-                            -words: http, how, apply, attach, boilerplate, fields, enclosed, brackets, replaced, identifying, information, don't, should, appropriate, comment, syntax, format, we, also, recommend, class, description, same, printed, page, easier, identification, archives, yyyy
+                            -words: http, how, apply, attach, boilerplate, fields
 ```

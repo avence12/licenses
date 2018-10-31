@@ -464,18 +464,14 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 			Path:    path,
 		}
 		if path != "" {
-			fpath := filepath.Join(info.Root, "src", path)
-			if isModule(info) {
-				fpath = path
-			}
-			m, ok := matched[fpath]
+			m, ok := matched[path]
 			if !ok {
-				data, err := ioutil.ReadFile(fpath)
+				data, err := ioutil.ReadFile(path)
 				if err != nil {
 					return nil, err
 				}
 				m = matchTemplates(data, templates)
-				matched[fpath] = m
+				matched[path] = m
 			}
 			license.Score = m.Score
 			license.Template = m.Template
