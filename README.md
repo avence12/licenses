@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/avence12/licenses.png?branch=master)](https://travis-ci.org/avence12/licenses)
+[![Build Status](https://travis-ci.org/avence12/licenses.png?branch=master)](https://travis-ci.org/avence12/licenses) [![Go Report Card](https://goreportcard.com/badge/github.com/avence12/licenses)](https://goreportcard.com/report/github.com/avence12/licenses)
 
 `licenses` uses `go list` tool over a Go workspace to collect the dependencies
 of a package or command, detect their license if any and match them against
