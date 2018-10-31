@@ -6,12 +6,6 @@ well-known templates. Require **Golang 1.11** or above to build this project.
 
 Inspired by [https://github.com/pmezard/licenses](https://github.com/pmezard/licenses).
 
-## New Features
-
-- Support Go Modules
-- Update license lists
-    - Add [Server Side Public License (SSPL)](https://www.mongodb.com/licensing/server-side-public-license)
-
 ## Installation
 
 ```
