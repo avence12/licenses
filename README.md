@@ -1,4 +1,7 @@
-[![Build Status](https://travis-ci.org/avence12/licenses.png?branch=master)](https://travis-ci.org/avence12/licenses) [![Go Report Card](https://goreportcard.com/badge/github.com/avence12/licenses)](https://goreportcard.com/report/github.com/avence12/licenses)
+[![Build Status](https://travis-ci.org/avence12/licenses.png?branch=master)](https://travis-ci.org/avence12/licenses)
+[![Go Report Card](https://goreportcard.com/badge/github.com/avence12/licenses)](https://goreportcard.com/report/github.com/avence12/licenses)
+[![GoDoc](https://godoc.org/github.com/avence12/licenses?status.svg)](https://godoc.org/github.com/avence12/licenses)
+[![Release](https://img.shields.io/github/release/avence12/licenses.svg?style=flat-square)](https://github.com/avence12/licenses/releases)
 
 `licenses` uses `go list` tool over a Go workspace to collect the dependencies
 of a package or command, detect their license if any and match them against
@@ -8,15 +11,20 @@ Inspired by [https://github.com/pmezard/licenses](https://github.com/pmezard/lic
 
 ## Installation
 
-```
+```sh
 $ go get -u github.com/avence12/licenses
 ```
 
 ## Quick Start
 
-- Show all licenses of github.com/drone/drone-cli/drone and its dependencies
+- Show all licenses of `github.com/drone/drone-cli/drone` and its dependencies
 
-```
+```sh
+# get source code
+$ go get -u -d github.com/drone/drone-cli/drone
+
+
+# check licenses
 $ licenses github.com/drone/drone-cli/drone
 github.com/drone/drone-cli                                                  Apache License 2.0
 github.com/drone/drone-cli/vendor/github.com/Sirupsen/logrus                MIT License
@@ -41,7 +49,7 @@ github.com/drone/drone-cli/vendor/gopkg.in/yaml.v2                          ? (T
 
 - Unmatched license words can be displayed with:
 
-```
+```sh
 $ licenses -w github.com/docker/go-units
 github.com/docker/go-units  Apache License 2.0 (96%)
                             +words: https

@@ -247,7 +247,7 @@ func listPackagesAndDeps(gopath string, pkgs []string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	args := []string{"list", "-test", "-f", "{{range .Deps}}{{.}}|{{end}}"}
+	args := []string{"list", "-f", "{{range .Deps}}{{.}}|{{end}}"}
 	args = append(args, pkgs...)
 	cmd := exec.Command("go", args...)
 	cmd.Env = fixEnv(gopath)
@@ -452,7 +452,8 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 			})
 			continue
 		}
-		if stdSet[info.ImportPath] {
+		// some vendored standard libraries need to be prefixed by vendor/. e.g. vendor/golang_org/x/crypto/chacha20poly1305
+		if stdSet[info.ImportPath] || stdSet["vendor/"+info.ImportPath] {
 			continue
 		}
 		path, err := findLicense(info)
