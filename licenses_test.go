@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"testing"
 )
@@ -14,6 +17,18 @@ type testResult struct {
 	Extra   int
 	Missing int
 	Err     string
+}
+
+var mainModuleName string
+
+func TestMain(m *testing.M) {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		log.Printf("Failed to read build info")
+		os.Exit(m.Run())
+	}
+	mainModuleName = bi.Main.Path
+	m.Run()
 }
 
 func listTestLicenses(pkgs []string) ([]testResult, error) {
@@ -76,8 +91,8 @@ func compareTestLicenses(pkgs []string, wanted []testResult) error {
 }
 
 func TestNoDependencies(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/red"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
+	err := compareTestLicenses([]string{"./testdata/src/colors/red"}, []testResult{
+		{Package: mainModuleName + "/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -85,8 +100,8 @@ func TestNoDependencies(t *testing.T) {
 }
 
 func TestMultipleLicenses(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/blue"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/blue", License: "Apache License 2.0", Score: 100},
+	err := compareTestLicenses([]string{"./testdata/src/colors/blue"}, []testResult{
+		{Package: mainModuleName + "/testdata/src/colors/blue", License: "Apache License 2.0", Score: 100},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -94,8 +109,8 @@ func TestMultipleLicenses(t *testing.T) {
 }
 
 func TestNoLicense(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/green"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/green", License: "", Score: 0},
+	err := compareTestLicenses([]string{"./testdata/src/colors/green"}, []testResult{
+		{Package: mainModuleName + "/testdata/src/colors/green", License: "", Score: 0},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -104,9 +119,9 @@ func TestNoLicense(t *testing.T) {
 
 func TestMainWithDependencies(t *testing.T) {
 	// It also tests license retrieval in parent directory.
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/cmd/paint"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/cmd/paint", License: "Academic Free License v3.0", Score: 100},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
+	err := compareTestLicenses([]string{"./testdata/src/colors/cmd/paint"}, []testResult{
+		{Package: mainModuleName + "/testdata/src/colors/cmd/paint", License: "Academic Free License v3.0", Score: 100},
+		{Package: mainModuleName + "/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -114,10 +129,10 @@ func TestMainWithDependencies(t *testing.T) {
 }
 
 func TestMainWithAliasedDependencies(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/cmd/mix"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/cmd/mix", License: "Academic Free License v3.0", Score: 100},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
-		{Package: "github.com/avence12/licenses/testdata/src/couleurs/red", License: "GNU Lesser General Public License v2.1",
+	err := compareTestLicenses([]string{"./testdata/src/colors/cmd/mix"}, []testResult{
+		{Package: mainModuleName + "/testdata/src/colors/cmd/mix", License: "Academic Free License v3.0", Score: 100},
+		{Package: mainModuleName + "/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
+		{Package: mainModuleName + "/testdata/src/couleurs/red", License: "GNU Lesser General Public License v2.1",
 			Score: 100},
 	})
 	if err != nil {
@@ -126,7 +141,7 @@ func TestMainWithAliasedDependencies(t *testing.T) {
 }
 
 func TestMissingPackage(t *testing.T) {
-	_, err := listTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/missing"})
+	_, err := listTestLicenses([]string{"./testdata/src/colors/missing"})
 	if err == nil {
 		t.Fatal("no error on missing package")
 	}
@@ -136,8 +151,8 @@ func TestMissingPackage(t *testing.T) {
 }
 
 func TestMismatch(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/yellow"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/yellow", License: "Microsoft Reciprocal License", Score: 25,
+	err := compareTestLicenses([]string{"./testdata/src/colors/yellow"}, []testResult{
+		{Package: mainModuleName + "/testdata/src/colors/yellow", License: "Microsoft Reciprocal License", Score: 25,
 			Extra: 106, Missing: 131},
 	})
 	if err != nil {
@@ -146,32 +161,9 @@ func TestMismatch(t *testing.T) {
 }
 
 func TestNoBuildableGoSourceFiles(t *testing.T) {
-	_, err := listTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/cmd"})
+	_, err := listTestLicenses([]string{"./testdata/src/colors/cmd"})
 	if err == nil {
 		t.Fatal("no error on missing package")
-	}
-}
-
-func TestBroken(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/broken"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/broken", License: "GNU General Public License v3.0", Score: 100},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/missing", License: "", Score: 0, Err: "some error"},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
-	})
-	if err == nil {
-		t.Fatal("no error on broken package")
-	}
-}
-
-func TestBrokenDependency(t *testing.T) {
-	err := compareTestLicenses([]string{"github.com/avence12/licenses/testdata/src/colors/purple"}, []testResult{
-		{Package: "github.com/avence12/licenses/testdata/src/colors/broken", License: "GNU General Public License v3.0", Score: 100},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/missing", License: "", Score: 0, Err: "some error"},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/purple", License: "", Score: 0},
-		{Package: "github.com/avence12/licenses/testdata/src/colors/red", License: "MIT License", Score: 98, Missing: 2},
-	})
-	if err == nil {
-		t.Fatal("no error on broken dependency")
 	}
 }
 

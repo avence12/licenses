@@ -5,53 +5,38 @@
 
 `licenses` uses `go list` tool over a Go workspace to collect the dependencies
 of a package or command, detect their license if any and match them against
-well-known templates. Require **Golang 1.11** or above to build this project.
+well-known templates. Require **Golang 1.16** or above to build this project such supports [Go Modules](https://go.dev/ref/mod).
 
 Inspired by [https://github.com/pmezard/licenses](https://github.com/pmezard/licenses).
 
 ## Installation
 
 ```sh
-$ go get -u github.com/avence12/licenses
+$ go install github.com/avence12/licenses@latest
 ```
 
 ## Quick Start
 
-- Show all licenses of `github.com/drone/drone-cli/drone` and its dependencies
+- Show all licenses of `github.com/spf13/cobra` and its dependencies
 
 ```sh
-# get source code
-$ go get -u -d github.com/drone/drone-cli/drone
-
+# download source code and get to the download folder
+$ go get -u -d github.com/spf13/cobra
+$ cd $GOPATH/pkg/mod/github.com/spf13/cobra*
 
 # check licenses
-$ licenses github.com/drone/drone-cli/drone
-github.com/drone/drone-cli                                                  Apache License 2.0
-github.com/drone/drone-cli/vendor/github.com/Sirupsen/logrus                MIT License
-github.com/drone/drone-cli/vendor/github.com/docker/distribution/reference  Apache License 2.0
-github.com/drone/drone-cli/vendor/github.com/docker/docker                  Apache License 2.0 (96%)
-github.com/drone/drone-cli/vendor/github.com/docker/go-connections          Apache License 2.0 (96%)
-github.com/drone/drone-cli/vendor/github.com/docker/go-units                Apache License 2.0 (96%)
-github.com/drone/drone-cli/vendor/github.com/docker/libcompose/yaml         Apache License 2.0 (96%)
-github.com/drone/drone-cli/vendor/github.com/drone/drone-go/drone           Apache License 2.0
-github.com/drone/drone-cli/vendor/github.com/drone/envsubst/parse           MIT License
-github.com/drone/drone-cli/vendor/github.com/flynn/go-shlex                 Apache License 2.0
-github.com/drone/drone-cli/vendor/github.com/ghodss/yaml                    ? (BSD 3-clause "New" or "Revised" License, 83%)
-github.com/drone/drone-cli/vendor/github.com/jackspirou/syscerts            Apache License 2.0
-github.com/drone/drone-cli/vendor/github.com/joho/godotenv/autoload         MIT License
-github.com/drone/drone-cli/vendor/github.com/pkg/errors                     BSD 2-clause "Simplified" License
-github.com/drone/drone-cli/vendor/github.com/urfave/cli                     MIT License
-github.com/drone/drone-cli/vendor/golang.org/x/net                          BSD 3-clause "New" or "Revised" License (96%)
-github.com/drone/drone-cli/vendor/golang.org/x/oauth2/internal              BSD 3-clause "New" or "Revised" License (96%)
-github.com/drone/drone-cli/vendor/golang.org/x/sync/errgroup                BSD 3-clause "New" or "Revised" License (96%)
-github.com/drone/drone-cli/vendor/gopkg.in/yaml.v2                          ? (The Unlicense, 35%)
+$ licenses github.com/spf13/cobra
+
+github.com/inconshreveable/mousetrap  Apache License 2.0
+github.com/spf13/cobra                Apache License 2.0 (95%)
+github.com/spf13/pflag                BSD 3-clause "New" or "Revised" License (96%)
 ```
 
 - Unmatched license words can be displayed with:
 
 ```sh
-$ licenses -w github.com/docker/go-units
-github.com/docker/go-units  Apache License 2.0 (96%)
-                            +words: https
-                            -words: http, how, apply, attach, boilerplate, fields
+$ licenses -w github.com/spf13/pflag
+github.com/spf13/pflag  BSD 3-clause "New" or "Revised" License (96%)
+                        +words: google, inc, owner
+                        -words: all, rights, reserved, project, holder
 ```

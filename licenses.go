@@ -588,6 +588,7 @@ func printLicenses() error {
 	flag.Usage = func() {
 		fmt.Println(msg)
 		os.Exit(1)
+		os.Exit(1)
 	}
 	all := flag.Bool("a", false, "display all individual packages")
 	words := flag.Bool("w", false, "display words not matching license template")
