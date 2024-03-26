@@ -20,6 +20,8 @@
 //go:generate asset no_license.txt
 //go:generate asset ofl_1.1.txt
 //go:generate asset osl_3.0.txt
+//go:generate asset rsal_2.0.txt
+//go:generate asset sspl_1.0.txt
 //go:generate asset unlicense.txt
 //go:generate asset wtfpl.txt
 
