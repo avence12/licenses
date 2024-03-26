@@ -1,13 +1,13 @@
 language: go
 go:
   - "1.21.x"
-  - master
+  - "1.16.x"
 
 os:
   - linux
   - osx
 
-dist: trusty
+dist: jammy
 sudo: false
 
 install: true
