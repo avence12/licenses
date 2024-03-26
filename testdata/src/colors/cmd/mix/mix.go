@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	fmt.Println(red2.red(), red.red())
+	fmt.Println(red2.Red(), red.Red())
 }

@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -39,7 +39,7 @@ type Template struct {
 
 func parseTemplate(content string) (*Template, error) {
 	t := Template{}
-	text := []byte{}
+	var text []byte
 	state := 0
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	for scanner.Scan() {
@@ -68,7 +68,7 @@ func parseTemplate(content string) (*Template, error) {
 }
 
 func loadTemplates() ([]*Template, error) {
-	templates := []*Template{}
+	var templates []*Template
 	for _, a := range assets.Assets {
 		tmpl, err := parseTemplate(a.Content)
 		if err != nil {
@@ -380,9 +380,17 @@ func findLicense(info *PkgInfo) (string, error) {
 		if isModule(info) {
 			fpath = info.Dir
 		}
-		fis, err := ioutil.ReadDir(fpath)
+		entries, err := os.ReadDir(fpath)
 		if err != nil {
 			return "", err
+		}
+		fis := make([]fs.FileInfo, 0, len(entries))
+		for _, entry := range entries {
+			info, err := entry.Info()
+			if err != nil {
+				return "", err
+			}
+			fis = append(fis, info)
 		}
 		bestScore := float64(0)
 		bestName := ""
@@ -467,7 +475,7 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 		if path != "" {
 			m, ok := matched[path]
 			if !ok {
-				data, err := ioutil.ReadFile(path)
+				data, err := os.ReadFile(path)
 				if err != nil {
 					return nil, err
 				}
@@ -588,7 +596,6 @@ func printLicenses() error {
 	flag.Usage = func() {
 		fmt.Println(msg)
 		os.Exit(1)
-		os.Exit(1)
 	}
 	all := flag.Bool("a", false, "display all individual packages")
 	words := flag.Bool("w", false, "display words not matching license template")
@@ -640,7 +647,7 @@ func printLicenses() error {
 func main() {
 	err := printLicenses()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
 }

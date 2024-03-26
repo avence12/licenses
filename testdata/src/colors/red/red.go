@@ -1,5 +1,5 @@
 package red
 
-func red() string {
+func Red() string {
 	return "red"
 }
