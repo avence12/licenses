@@ -20,21 +20,18 @@ $ go install github.com/avence12/licenses@latest
 - Show all licenses of `github.com/spf13/cobra` and its dependencies
 
 ```sh
-# download source code and get to the download folder
+# Download source code and get to the download folder
 $ go get -u -d github.com/spf13/cobra
 $ cd $GOPATH/pkg/mod/github.com/spf13/cobra*
 
-# check licenses
+# Check licenses
 $ licenses github.com/spf13/cobra
 
 github.com/inconshreveable/mousetrap  Apache License 2.0
 github.com/spf13/cobra                Apache License 2.0 (95%)
 github.com/spf13/pflag                BSD 3-clause "New" or "Revised" License (96%)
-```
 
-- Unmatched license words can be displayed with:
-
-```sh
+# Unmatched license words can be displayed with:
 $ licenses -w github.com/spf13/pflag
 github.com/spf13/pflag  BSD 3-clause "New" or "Revised" License (96%)
                         +words: google, inc, owner

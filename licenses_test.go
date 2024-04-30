@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -40,7 +41,7 @@ func listTestLicenses(pkgs []string) ([]testResult, error) {
 	if err != nil {
 		return nil, &MissingError{Err: err.Error()}
 	}
-	res := []testResult{}
+	var res []testResult
 	for _, l := range licenses {
 		r := testResult{
 			Package: l.Package,
@@ -61,7 +62,7 @@ func listTestLicenses(pkgs []string) ([]testResult, error) {
 
 func compareTestLicenses(pkgs []string, wanted []testResult) error {
 	stringify := func(res []testResult) string {
-		parts := []string{}
+		var parts []string
 		for _, r := range res {
 			s := fmt.Sprintf("%s \"%s\" %d%%", r.Package, r.License, r.Score)
 			if r.Err != "" {
@@ -145,7 +146,8 @@ func TestMissingPackage(t *testing.T) {
 	if err == nil {
 		t.Fatal("no error on missing package")
 	}
-	if _, ok := err.(*MissingError); !ok {
+	var missingError *MissingError
+	if !errors.As(err, &missingError) {
 		t.Fatalf("MissingError expected")
 	}
 }

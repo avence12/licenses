@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -129,7 +130,7 @@ type MatchResult struct {
 
 func sortAndReturnWords(words []Word) []string {
 	sort.Sort(sortedWords(words))
-	tokens := []string{}
+	var tokens []string
 	for _, w := range words {
 		tokens = append(tokens, w.Text)
 	}
@@ -142,12 +143,12 @@ func sortAndReturnWords(words []Word) []string {
 func matchTemplates(license []byte, templates []*Template) MatchResult {
 	bestScore := float64(-1)
 	var bestTemplate *Template
-	bestExtra := []Word{}
-	bestMissing := []Word{}
+	var bestExtra []Word
+	var bestMissing []Word
 	words := makeWordSet(license)
 	for _, t := range templates {
-		extra := []Word{}
-		missing := []Word{}
+		var extra []Word
+		var missing []Word
 		common := 0
 		for w, pos := range words {
 			_, ok := t.Words[w]
@@ -232,7 +233,7 @@ func expandPackages(gopath string, pkgs []string) ([]string, error) {
 		return nil, fmt.Errorf("'go %s' failed with:\n%s",
 			strings.Join(args, " "), output)
 	}
-	names := []string{}
+	var names []string
 	for _, s := range strings.Split(string(out), "\n") {
 		s = strings.TrimSpace(s)
 		if s != "" {
@@ -261,7 +262,7 @@ func listPackagesAndDeps(gopath string, pkgs []string) ([]string, error) {
 		return nil, fmt.Errorf("'go %s' failed with:\n%s",
 			strings.Join(args, " "), output)
 	}
-	deps := []string{}
+	var deps []string
 	seen := map[string]bool{}
 	for _, s := range strings.Split(string(out), "|") {
 		s = strings.TrimSpace(s)
@@ -428,7 +429,8 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 	}
 	deps, err := listPackagesAndDeps(gopath, pkgs)
 	if err != nil {
-		if _, ok := err.(*MissingError); ok {
+		var missingError *MissingError
+		if errors.As(err, &missingError) {
 			return nil, err
 		}
 		return nil, fmt.Errorf("could not list %s dependencies: %s",
@@ -451,7 +453,7 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 	// subpackages like kubernetes.
 	matched := map[string]MatchResult{}
 
-	licenses := []License{}
+	var licenses []License
 	for _, info := range infos {
 		if info.Error != nil {
 			licenses = append(licenses, License{
@@ -460,7 +462,6 @@ func listLicenses(gopath string, pkgs []string) ([]License, error) {
 			})
 			continue
 		}
-		// some vendored standard libraries need to be prefixed by vendor/. e.g. vendor/golang_org/x/crypto/chacha20poly1305
 		if stdSet[info.ImportPath] || stdSet["vendor/"+info.ImportPath] {
 			continue
 		}
@@ -526,7 +527,7 @@ func longestCommonPrefix(licenses []License) string {
 		}
 	}
 	n := root
-	prefix := []string{}
+	var prefix []string
 	for {
 		if len(n.Children) != 1 {
 			break
@@ -564,7 +565,7 @@ func groupLicenses(licenses []License) ([]License, error) {
 		l.Package = prefix
 		paths[k] = []License{l}
 	}
-	kept := []License{}
+	var kept []License
 	for _, l := range licenses {
 		if l.Path == "" {
 			kept = append(kept, l)
