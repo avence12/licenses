@@ -45,11 +45,12 @@ func parseTemplate(content string) (*Template, error) {
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if state == 0 {
+		switch state {
+		case 0:
 			if line == "---" {
 				state = 1
 			}
-		} else if state == 1 {
+		case 1:
 			if line == "---" {
 				state = 2
 			} else {
@@ -59,7 +60,7 @@ func parseTemplate(content string) (*Template, error) {
 					t.Nickname = strings.TrimSpace(line[len("nickname:"):])
 				}
 			}
-		} else if state == 2 {
+		default:
 			text = append(text, scanner.Bytes()...)
 			text = append(text, []byte("\n")...)
 		}
