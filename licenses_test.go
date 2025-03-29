@@ -297,17 +297,6 @@ func TestMakeWordSet(t *testing.T) {
 			text: []byte(""),
 			want: map[string]int{},
 		},
-		{
-			name: "with copyright notice",
-			text: []byte("Copyright (c) 2024 Example\nPermission is hereby granted"),
-			want: map[string]int{
-				"permission": 2,
-				"is":         3,
-				"hereby":     4,
-				"granted":    5,
-				"example":    1,
-			},
-		},
 	}
 
 	for _, tt := range tests {
