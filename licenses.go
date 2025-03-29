@@ -74,9 +74,12 @@ func loadTemplates() ([]*Template, error) {
 	for _, a := range assets.Assets {
 		tmpl, err := parseTemplate(a.Content)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse template %q: %w", a.Name, err)
 		}
 		templates = append(templates, tmpl)
+	}
+	if len(templates) == 0 {
+		return nil, fmt.Errorf("no license templates found")
 	}
 	return templates, nil
 }
