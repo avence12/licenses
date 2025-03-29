@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime/debug"
 	"strings"
 	"testing"
@@ -181,5 +182,129 @@ func TestCleanLicenseData(t *testing.T) {
 	wanted := "the mit license (mit)\n\n\tsome other lines.\n\tand more.\n\t"
 	if wanted != cleaned {
 		t.Fatalf("license data mismatch: %q\n!=\n%q", cleaned, wanted)
+	}
+}
+
+func TestParseTemplate(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		want    *Template
+		wantErr bool
+	}{
+		{
+			name: "valid template with title and nickname",
+			content: `---
+title: MIT License
+nickname: MIT
+---
+Permission is hereby granted, free of charge`,
+			want: &Template{
+				Title:    "MIT License",
+				Nickname: "MIT",
+				Words: map[string]int{
+					"permission": 0,
+					"is":         1,
+					"hereby":     2,
+					"granted":    3,
+					"free":       4,
+					"of":         5,
+					"charge":     6,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "template without nickname",
+			content: `---
+title: Apache License
+---
+Licensed under Apache`,
+			want: &Template{
+				Title:    "Apache License",
+				Nickname: "",
+				Words: map[string]int{
+					"licensed": 0,
+					"under":    1,
+					"apache":   2,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "empty template",
+			content: "",
+			want: &Template{
+				Title:    "",
+				Nickname: "",
+				Words:    map[string]int{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "incomplete metadata section",
+			content: `---
+title: Incomplete
+`,
+			want: &Template{
+				Title:    "Incomplete",
+				Nickname: "",
+				Words:    map[string]int{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseTemplate(tt.content)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseTemplate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseTemplate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Helper test to specifically check word counting
+func TestMakeWordSet(t *testing.T) {
+	tests := []struct {
+		name string
+		text []byte
+		want map[string]int
+	}{
+		{
+			name: "simple text",
+			text: []byte("hello world"),
+			want: map[string]int{
+				"hello": 0,
+				"world": 1,
+			},
+		},
+		{
+			name: "repeated words",
+			text: []byte("hello hello world"),
+			want: map[string]int{
+				"hello": 0,
+				"world": 2,
+			},
+		},
+		{
+			name: "empty text",
+			text: []byte(""),
+			want: map[string]int{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := makeWordSet(tt.text)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("makeWordSet() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
