@@ -1,4 +1,4 @@
-package main
+package licenses
 
 import (
 	"errors"
@@ -38,7 +38,7 @@ func listTestLicenses(pkgs []string) ([]testResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	licenses, err := listLicenses(gopath, pkgs)
+	licenses, err := ListLicenses(gopath, pkgs)
 	if err != nil {
 		return nil, &MissingError{Err: err.Error()}
 	}
@@ -296,6 +296,108 @@ func TestMakeWordSet(t *testing.T) {
 			name: "empty text",
 			text: []byte(""),
 			want: map[string]int{},
+		},
+		{
+			name: "case insensitive conversion",
+			text: []byte("Hello WORLD Test"),
+			want: map[string]int{
+				"hello": 0,
+				"world": 1,
+				"test":  2,
+			},
+		},
+		{
+			name: "copyright removal",
+			text: []byte("Copyright 2024 John Doe\nMIT License\nPermission is hereby granted"),
+			want: map[string]int{
+				"mit":        0,
+				"license":    1,
+				"permission": 2,
+				"is":         3,
+				"hereby":     4,
+				"granted":    5,
+			},
+		},
+		{
+			name: "copyright with symbol",
+			text: []byte("Copyright © 2023 Company\nApache License 2.0\nRedistribution and use"),
+			want: map[string]int{
+				"apache":         0,
+				"license":        1,
+				"2":              2,
+				"0":              3,
+				"redistribution": 4,
+				"and":            5,
+				"use":            6,
+			},
+		},
+		{
+			name: "copyright with (c)",
+			text: []byte("Copyright (c) 2022 Author\nGPL License\nThis program is free software"),
+			want: map[string]int{
+				"gpl":      0,
+				"license":  1,
+				"this":     2,
+				"program":  3,
+				"is":       4,
+				"free":     5,
+				"software": 6,
+			},
+		},
+		{
+			name: "words with apostrophes",
+			text: []byte("don't can't won't"),
+			want: map[string]int{
+				"don't": 0,
+				"can't": 1,
+				"won't": 2,
+			},
+		},
+		{
+			name: "mixed content with punctuation",
+			text: []byte("Copyright 2024\nLicense: MIT\nTerms and conditions apply."),
+			want: map[string]int{
+				"license":    0,
+				"mit":        1,
+				"terms":      2,
+				"and":        3,
+				"conditions": 4,
+				"apply":      5,
+			},
+		},
+		{
+			name: "multiple copyright lines",
+			text: []byte("Copyright 2024 John\nCopyright 2023 Jane\nBSD License\nRedistribution permitted"),
+			want: map[string]int{
+				"bsd":            0,
+				"license":        1,
+				"redistribution": 2,
+				"permitted":      3,
+			},
+		},
+		{
+			name: "copyright with [year] placeholder",
+			text: []byte("Copyright [year] Author\nMIT License\nPermission granted"),
+			want: map[string]int{
+				"mit":        0,
+				"license":    1,
+				"permission": 2,
+				"granted":    3,
+			},
+		},
+		{
+			name: "only copyright line",
+			text: []byte("Copyright 2024 Author"),
+			want: map[string]int{},
+		},
+		{
+			name: "whitespace handling",
+			text: []byte("   Copyright 2024   \n   MIT License   \n   terms   "),
+			want: map[string]int{
+				"mit":     0,
+				"license": 1,
+				"terms":   2,
+			},
 		},
 	}
 
